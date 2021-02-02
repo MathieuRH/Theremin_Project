@@ -57,6 +57,7 @@ import threading
 import numpy as np
 import simpleaudio as sa
 import tkinter
+import time
 
 can_width=1500
 can_height=200
@@ -66,12 +67,17 @@ play = 0
 Fe = 44100
 WAIT_SECONDS = 0.050 #50 ms entre deux notes jouées
 
-def note(f, vol, T = 0.15, wf = 128, br = 128, fe = Fe):
-    """"Return the Theremin sound af a note of frequency f, volume vol, for a duration T (default T=0.05s) 
+memory_frequency = 0
+ref_tremolo = time.time()
+tremolo_max = 5
+
+def note(f, vol, trem=0, T = 0.15, wf = 128, br = 128, fe = Fe):
+    """"Return the Theremin sound af a note of frequency f, volume vol, for a duration T (default T=0.05s)
+    trem stands for tremolo : when you stay in the same spot the note vibrates a little
     Minimum theroretical duration is 0.013ms, but due to start and stop increments we need more"""
     
     t = np.linspace(0,T,np.int(fe*T))
-    note = 2048*np.tanh((np.sin(2*np.pi*f*t) + 0.8*wf/255)*6*(0.35))
+    note = 2048*np.tanh((np.sin(2*np.pi*f*t+np.sin(2*np.pi*trem*t)) + 0.8*wf/255)*6*(0.35))
     note = fade_in(note, 0.05, fe)
     note = fade_out(note, 0.05, fe)
     
@@ -101,12 +107,31 @@ def fade_out (snd, fade_length, fe):
             factor += step
     return snd
 
+def maj_tremolo(t):
+    """Retourne la valeur du trémolo en fonction du temps passé sur la même note
+    Pas de trémolo sur les 0.5 premières secondes de la note, après on monte graduellement jusqu'à 1 sec"""
+    global tremolo_max
+    if t<=0.5:
+        return 0
+    else :
+        return min (tremolo_max*(t-0.5)/0.5, tremolo_max)
+
 class Appel():
+    """Fonction qui s'appelle toutes les WAIT_SECONDS pour jouer la note suivante"""
+    
     def hello(self):
         print("hello, world")
     
     def commence(self):
-        audio = note(frequence, volume)
+        global frequence, memory_frequency, ref_tremolo
+        # Condition d'amplification de trémolo : si on garde la même note un petit trémolo s'ajoute
+        if frequence != memory_frequency :
+            ref_tremolo = time.time()
+            
+        tremolo = maj_tremolo(time.time()-ref_tremolo)
+        audio = note(frequence, volume, tremolo)
+        memory_frequency = frequence
+        
         sa.play_buffer(audio, 1, 2, Fe)
         self.t = threading.Timer(WAIT_SECONDS, self.commence)
         self.t.start()
