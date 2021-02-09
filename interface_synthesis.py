@@ -1,58 +1,3 @@
-'''
-# NB : Très long au démarrage, pas possible de faire quelque chose en parallèle --> pire que time.sleep()
-import sched, time
-
-s = sched.scheduler(time.time, time.sleep)
-def do_something(sc): 
-    print("Doing stuff...")
-    print(1)
-    s.enter(2, 1, do_something, (sc,))
-
-s.enter(60, 1, do_something, (s,))
-s.run()
-'''
-
-        
-'''
-#Test fonctionnel de threads
-import threading, time
-
-def hello():
-    print("hello, world")
-
-WAIT_SECONDS = 5
-
-class foo_training():
-    def hello(self):
-        print("hello, world")
-    
-    def foo(self):
-        hello()
-        self.t_foo = threading.Timer(WAIT_SECONDS, self.foo)
-        self.t_foo.start()
-    
-    def foo_stop(self):
-        self.t_foo.cancel()
-        # Timer._Thread__stop()
-        
-a = foo_training()
-a.foo()
-
-# t = threading.Timer(30.0, hello)
-# t.start()  # after 30 seconds, "hello, world" will be printed
-
-i = 0
-while (True):
-    print("passage 1")
-    time.sleep(1)
-    print("passage 2")
-    time.sleep(5)
-    print("passage 3")
-    time.sleep(1)
-    a.foo_stop()
-    
-'''
-
 import threading
 import numpy as np
 import simpleaudio as sa
@@ -65,13 +10,14 @@ x = 0
 y = 0
 play = 0
 Fe = 44100
-WAIT_SECONDS = 0.050 #50 ms entre deux notes jouées
+WAIT_SECONDS = 0.0650 #50 ms entre deux notes jouées
 
 memory_frequency = 0
 ref_tremolo = time.time()
-tremolo_max = 5
+tremolo_max = 10
+tremolo_delay = 0.4
 
-def note(f, vol, trem=0, T = 0.15, wf = 128, br = 128, fe = Fe):
+def note(f, vol, trem=0, T = 0.2, wf = 128, br = 128, fe = Fe):
     """"Return the Theremin sound af a note of frequency f, volume vol, for a duration T (default T=0.05s)
     trem stands for tremolo : when you stay in the same spot the note vibrates a little
     Minimum theroretical duration is 0.013ms, but due to start and stop increments we need more"""
@@ -110,11 +56,11 @@ def fade_out (snd, fade_length, fe):
 def maj_tremolo(t):
     """Retourne la valeur du trémolo en fonction du temps passé sur la même note
     Pas de trémolo sur les 0.5 premières secondes de la note, après on monte graduellement jusqu'à 1 sec"""
-    global tremolo_max
-    if t<=0.5:
+    global tremolo_max, tremolo_delay
+    if t<=tremolo_delay:
         return 0
     else :
-        return min (tremolo_max*(t-0.5)/0.5, tremolo_max)
+        return min (tremolo_max*(t-tremolo_delay)/tremolo_delay, tremolo_max)
 
 class Appel():
     """Fonction qui s'appelle toutes les WAIT_SECONDS pour jouer la note suivante"""
@@ -123,7 +69,7 @@ class Appel():
         print("hello, world")
     
     def commence(self):
-        global frequence, memory_frequency, ref_tremolo
+        global frequence, volume, memory_frequency, ref_tremolo
         # Condition d'amplification de trémolo : si on garde la même note un petit trémolo s'ajoute
         if frequence != memory_frequency :
             ref_tremolo = time.time()
@@ -142,28 +88,6 @@ class Appel():
         
 musique = Appel()
 
-# t = threading.Timer(30.0, hello)
-# t.start()  # after 30 seconds, "hello, world" will be printed
-    
-#############################
-#   Création du canvas      #
-#############################
-
-root = tkinter.Tk()
-canvas = tkinter.Canvas(root, width = can_width, height = can_height)
-canvas.pack()
-
-
-def motion(event):
-    global frequence, volume, can_width, can_height
-    #NB : Temps moyen entre deux lancement de fonctions de signal : 13ms
-    #t_min = 12ms (très rarement moins)
-    x, y = event.x, event.y
-    volume = y/(can_height*1.05)
-    frequence = x
-    print("volume : ", volume)
-    print("Frequence : ", frequence)
-    
     
 def callback(event):
     global play, musique
@@ -179,9 +103,27 @@ def callback(event):
 def stopMusique():
     global musique
     musique.stop()
+    
+#############################
+#   Création du canvas      #
+#############################
+
+root = tkinter.Tk()
+stopButton = tkinter.Button(root, text ="STOP", command = stopMusique)
+stopButton.pack()
+canvas = tkinter.Canvas(root, width = can_width, height = can_height)
+canvas.pack()
+
+def motion(event):
+    global frequence, volume, can_width, can_height
+    #NB : Temps moyen entre deux lancement de fonctions de signal : 13ms
+    #t_min = 12ms (très rarement moins)
+    x, y = event.x, event.y
+    volume = y/(can_height*1.05)
+    frequence = x
+    print("volume : ", volume)
+    print("Frequence : ", frequence)
 
 canvas.bind('<Motion>', motion)
 canvas.bind('<Button-1>', callback)
-stopButton = tkinter.Button(root, text ="STOP", command = stopMusique)
-stopButton.pack()
 root.mainloop()
