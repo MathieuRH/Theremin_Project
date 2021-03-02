@@ -1,5 +1,5 @@
 import sys, Leap
-from Leap import CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
+from Leap import CircleGesture
 from socketserver import SocketServer
 
 def int_to_hex(a):
@@ -23,11 +23,14 @@ class LeapListener(Leap.Listener):
         
     def on_connect(self, controller):
         print( "Theremin connected")
-        # Enable gestures
-        controller.enable_gesture(Leap.Gesture.TYPE_CIRCLE);
-        controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP);
-        controller.enable_gesture(Leap.Gesture.TYPE_SCREEN_TAP);
-        controller.enable_gesture(Leap.Gesture.TYPE_SWIPE);
+        # Configure circle gestures
+        controller.config.set("Gesture.Circle.MinRadius", 10.0)
+        controller.config.set("Gesture.Circle.MinArc", 3.5)
+        controller.config.save()
+        self.sound = False
+        
+        # Enable circle gesture
+        controller.enable_gesture(Leap.Gesture.TYPE_CIRCLE)
 
     def on_disconnect(self, controller):
         # Note: not dispatched when running in a debugger.
@@ -37,8 +40,8 @@ class LeapListener(Leap.Listener):
         print ("Exited")
 
     def on_frame(self, controller):
-        # initialize byte string
-        data = "0x000x000x000x00"
+        # initialize byte string with 5 empty bytes
+        data = "0x00"*5
         # Get the most recent frame  information
         frame = controller.frame()
         #gross calibration
@@ -64,9 +67,29 @@ class LeapListener(Leap.Listener):
             
             # fill data byte string
             if handType == "Right hand":
-                data = data[0:8] + x + y
+                data = data[:12] + x + y
             else:
-                data = x + y + data[8:16]
+                data = data[:4] + x + y + data[12:20]
+                
+        if self.sound:
+            data = int_to_hex(1)+data[4:]
+                
+         # Get gestures
+        for gesture in frame.gestures():
+            if gesture.type == Leap.Gesture.TYPE_CIRCLE:
+                circle = CircleGesture(gesture)
+                if circle.state == Leap.Gesture.STATE_START:
+                    # Determine clock direction using the angle between the pointable and the circle normal
+                    if circle.pointable.direction.angle_to(circle.normal) <= Leap.PI/2:
+                        # clockwise
+                        self.sound = True
+                    else:
+                        self.sound = False
+                print ("  Circle id: %d, %s, progress: %f, radius: %f" % (
+                        gesture.id, self.state_names[gesture.state],
+                        circle.progress, circle.radius))
+
+            
                 
         #send data with socket server
         self.server.send(data)
@@ -83,6 +106,7 @@ class LeapListener(Leap.Listener):
 
         if state == Leap.Gesture.STATE_INVALID:
             return "STATE_INVALID"
+            
 
 def main():
     
