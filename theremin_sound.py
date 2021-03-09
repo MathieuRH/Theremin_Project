@@ -17,12 +17,13 @@ freq_gamme_essai = [385, 423, 482, 505, 574, 651, 728, 770]
 #br = Brightness (0~un peu sourd ; 256~clear af)
 #vol = volume percentage (0-1)
 #f = note frequency
-def noteTH(f, vol, T = 1, wf = 128, br = 0, fe = Fe):
-    """"Return the Theremin sound af a note of frequency f, volume vol, for a duration T (default T=0.05s) 
+def noteTH(f, vol, T = 1, wf = 128, br = 128, trem=2, fe = Fe):
+    """"Return the Theremin sound af a note of frequency f, volume vol, for a duration T (default T=0.05s)
+    trem stands for tremolo : when you stay in the same spot the note vibrates a little
     Minimum theroretical duration is 0.013ms, but due to start and stop increments we need more"""
     
     t = np.linspace(0,T,np.int(fe*T))
-    note = 2048*np.tanh((np.sin(2*np.pi*f*t) + 0.8*wf/255)*6*(0.35))
+    note = 2048*np.tanh((np.sin(2*np.pi*f*t+np.sin(2*np.pi*trem*t)) + 0.8*wf/255)*6*(0.35))
     note = fade_in(note, 0.05, fe)
     note = fade_out(note, 0.05, fe)
     
@@ -70,7 +71,6 @@ def note(f, vol, T = 1, ft = 5, fe = Fe):
     audio = note * (2**15 - 1) / np.max(np.abs(note)) * vol
     # Convert to 16-bit data
     audio = audio.astype(np.int16)
-    print(audio)
     return audio
 
 i = 0

@@ -4,18 +4,44 @@ import simpleaudio as sa
 import tkinter
 import time
 
-can_width=1500
+can_width=800
 can_height=200
 x = 0
 y = 0
 play = 0
 Fe = 44100
-WAIT_SECONDS = 0.0650 #50 ms entre deux notes jouées
+WAIT_SECONDS = 0.070 #50 ms entre deux notes jouées
 
 memory_frequency = 0
 ref_tremolo = time.time()
 tremolo_max = 10
 tremolo_delay = 0.4
+
+#Paramètres du leap motion
+xmin = 0
+xmax = 800
+ymin = 70
+ymax = 250
+
+#Choix des notes minimale et maximale :
+# ref_min : numéro de la note minimale
+# ref_max : numéro de la note maximale
+# NB : La440 = note n°49
+# 12 notes par octave (La220 = n°37; La880 = n°61)
+ref_min = 37
+ref_max = 61
+
+#Calibration de la gamme pouvant être jouée
+def freq_numNote(n):
+    return 2**((n-49)/12)*440
+
+nb_notes = ref_max-ref_min+1
+table_abscisses = np.linspace(xmin, xmax, nb_notes)
+table_frequences = []
+for i in range(nb_notes):
+    table_frequences.append(freq_numNote(ref_min+i))
+
+
 
 def note(f, vol, trem=0, T = 0.2, wf = 128, br = 128, fe = Fe):
     """"Return the Theremin sound af a note of frequency f, volume vol, for a duration T (default T=0.05s)
@@ -62,6 +88,34 @@ def maj_tremolo(t):
     else :
         return min (tremolo_max*(t-tremolo_delay)/tremolo_delay, tremolo_max)
 
+def calcul_frequence(pos):
+    """
+    Fonction de calcul de la fréquence jouée en fonction de la position de la main et de la calibration initiale.
+    
+    Parameters
+    ----------
+    pos : Position de l'abscisse de la main
+
+    Returns
+    -------
+    Fréquence de jeu calculée
+
+    """
+    global xmin, xmax, table_abscisses, table_frequences
+    
+    #On cherche dans quel intervalle se situe la note que l'on joue
+    indice_intervalle = 0
+    while(table_abscisses[indice_intervalle+1]<pos):
+        indice_intervalle += 1
+        
+    print(indice_intervalle)
+    #On retrouve la fréquence en interpolant à partir des deux notes connues les plus proches
+    pourcentage_pos = (pos-table_abscisses[indice_intervalle])/(table_abscisses[indice_intervalle+1]-table_abscisses[indice_intervalle])
+    pente_freq = table_frequences[indice_intervalle+1]-table_frequences[indice_intervalle]
+    f = table_frequences[indice_intervalle]+pourcentage_pos*pente_freq
+    
+    return f
+
 class Appel():
     """Fonction qui s'appelle toutes les WAIT_SECONDS pour jouer la note suivante"""
     
@@ -101,8 +155,10 @@ def callback(event):
         musique.stop()
         
 def stopMusique():
-    global musique
+    global musique, play
+    print("Stopping music...")
     musique.stop()
+    play = 0
     
 #############################
 #   Création du canvas      #
@@ -120,8 +176,9 @@ def motion(event):
     #t_min = 12ms (très rarement moins)
     x, y = event.x, event.y
     volume = y/(can_height*1.05)
-    frequence = x
+    frequence = calcul_frequence(x)
     print("volume : ", volume)
+    print("Coordonnée : ", x)
     print("Frequence : ", frequence)
 
 canvas.bind('<Motion>', motion)
