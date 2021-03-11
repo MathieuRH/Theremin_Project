@@ -6,6 +6,8 @@ class SoundGenerator():
     def __init__(self):
         #sound synthesis paramters
         self.fe = 44100
+        self.first_note = 220 #lowest note in Hz
+        self.number_of_notes = 25 
         #individual notes parameters
         self.tremolo_max = 5
         self.tremolo_start = 0.5
@@ -14,7 +16,7 @@ class SoundGenerator():
         self.t_out = 0.05
         
         #initialize internal variables
-        self.frequency = 200
+        self.frequency = self.first_note
         self.volume = 0.05
         self.memory_frequency = 0
         self.ref_tremolo = time()

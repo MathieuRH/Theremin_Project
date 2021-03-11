@@ -28,7 +28,7 @@ class ThereminPlayer():
         xRight = int(data[12:16], 16)
         yRight = int(data[16:20], 16)
         #change value range from 0-255 to coherent values for volume and frequency
-        self.music.frequency = xRight + 200
+        self.music.frequency = self.music.first_note * 2**(xRight*(self.music.number_of_notes-1)/12/255)
         self.music.volume = yRight / 255
         print("on "+str(self.music.on) +"\nf "+str(self.music.frequency) +"\nv "+str(self.music.volume)+"\ntrem "+str(self.music.tremolo)+"\n\n")
         
