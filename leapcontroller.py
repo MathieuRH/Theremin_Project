@@ -45,10 +45,10 @@ class LeapListener(Leap.Listener):
         # Get the most recent frame  information
         frame = controller.frame()
         #gross calibration
-        xmin = -50
-        xmax = 150
-        ymin = 70
-        ymax = 250
+        xmin = -15
+        xmax = 185
+        ymin = 90
+        ymax = 220
         for hand in frame.hands:
             handType = "Left hand" if hand.is_left else "Right hand"
             

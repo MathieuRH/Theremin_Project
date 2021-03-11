@@ -20,4 +20,7 @@ To run the project, have the correct version of Leap Motion Control Panel instal
 Then launch leapcontroller.py with python2 and thereminplayer.py with python3.
 To mute sound, draw a circle counter clockwise. The project start muted.
 To unmute sound, draw a circle clockwise with any of your fingers.
-The x coordinate of the right hand control the frequency and its y coordinate controls the volume.
+The x coordinate of the right hand control the frequency.
+The lowest note is above the leap motion, higher notes are played by moving the hand to the right 
+The y coordinate of the left hand controls the volume.
+You should have your left hand left of the leap motion to leave enough space for your right hand.
