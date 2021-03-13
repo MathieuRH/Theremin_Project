@@ -111,7 +111,6 @@ class LeapListener(Leap.Listener):
             return "STATE_INVALID"
 
 def main():
-    
     # Create a sample listener and controller
     listener = LeapListener()
     controller = Leap.Controller()

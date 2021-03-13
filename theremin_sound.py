@@ -79,8 +79,3 @@ while i<len(freq_gamme_essai):
     play = sa.play_buffer(audio, 1, 2, Fe)
     play.wait_done()
     i += 1
-
-
-
-
-

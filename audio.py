@@ -36,35 +36,31 @@ class ThereminSocketClient():
             print('Received', repr(self.data))
         else:
             print('socket not opened (yet?)')
-            
-                
+
 class ThereminPlayer():
     def __init__(self):
         self.client  = ThereminSocketClient()
         self.fs = 44100
         self.start()
+        
     def play(self,frequency, seconds):
-        # Our played note will be frequency Hz
-        # Note duration of seconds seconds
-        #
         # Generate array with seconds*sample_rate steps, ranging between 0 and seconds
         t = np.linspace(0, seconds, int(seconds * self.fs), False)
-        #
+
         # Generate a 440 Hz sine wave
         note = np.sin(frequency * t * 2 * np.pi)
-        #
+
         # Ensure that highest value is in 16-bit range
         audio = note * (2**15 - 1) / np.max(np.abs(note))
-        # divide by 5
         audio /= 5;
         # Convert to 16-bit data
         audio = audio.astype(np.int16)
-        #
+
         # Start playback
         play_obj = sap.play_buffer(audio, 1, 2, self.fs)
-        #
         # Wait for playback to finish before exiting
-        #play_obj.wait_done()
+        # play_obj.wait_done()
+        
     def start(self):
         self.client.receive()
         data = self.client.data[-2:]

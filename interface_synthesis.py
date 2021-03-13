@@ -4,13 +4,13 @@ import simpleaudio as sa
 import tkinter
 import time
 
-can_width=800
-can_height=200
+can_width = 800
+can_height = 200
 x = 0
 y = 0
 play = 0
 Fe = 44100
-WAIT_SECONDS = 0.070 #50 ms entre deux notes jouées
+WAIT_SECONDS = 0.070 # ms entre deux notes jouées
 
 memory_frequency = 0
 ref_tremolo = time.time()
