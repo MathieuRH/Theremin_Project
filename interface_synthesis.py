@@ -16,6 +16,8 @@ memory_frequency = 0
 ref_tremolo = time.time()
 tremolo_max = 10
 tremolo_delay = 0.4
+#Paramètre modifiable
+quart_ton = 2**(1/24)
 
 #Paramètres du leap motion
 xmin = 0
@@ -81,7 +83,7 @@ def fade_out (snd, fade_length, fe):
 
 def maj_tremolo(t):
     """Retourne la valeur du trémolo en fonction du temps passé sur la même note
-    Pas de trémolo sur les 0.5 premières secondes de la note, après on monte graduellement jusqu'à 1 sec"""
+    Pas de trémolo sur les 0.5 premières secondes de la note, après on monte graduellement jusqu'au temps tremolo_delay"""
     global tremolo_max, tremolo_delay
     if t<=tremolo_delay:
         return 0
@@ -108,7 +110,7 @@ def calcul_frequence(pos):
     while(table_abscisses[indice_intervalle+1]<pos):
         indice_intervalle += 1
         
-    print(indice_intervalle)
+    #print(indice_intervalle)
     #On retrouve la fréquence en interpolant à partir des deux notes connues les plus proches
     pourcentage_pos = (pos-table_abscisses[indice_intervalle])/(table_abscisses[indice_intervalle+1]-table_abscisses[indice_intervalle])
     pente_freq = table_frequences[indice_intervalle+1]-table_frequences[indice_intervalle]
@@ -125,12 +127,14 @@ class Appel():
     def commence(self):
         global frequence, volume, memory_frequency, ref_tremolo
         # Condition d'amplification de trémolo : si on garde la même note un petit trémolo s'ajoute
-        if frequence != memory_frequency :
-            ref_tremolo = time.time()
+        #MAJ : si la note est comprise dans un intervalle proche de la note précédente (1/4 ton, modifiable), on ne change pas le trémolo non plus
+        if frequence < memory_frequency/quart_ton or frequence > memory_frequency*quart_ton :
+              ref_tremolo = time.time()
             
         tremolo = maj_tremolo(time.time()-ref_tremolo)
         audio = note(frequence, volume, tremolo)
         memory_frequency = frequence
+        print('tremolo :', tremolo)
         
         sa.play_buffer(audio, 1, 2, Fe)
         self.t = threading.Timer(WAIT_SECONDS, self.commence)
