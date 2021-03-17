@@ -12,6 +12,7 @@ class SoundGenerator():
         self.tremolo_max = 5
         self.tremolo_start = 0.5
         self.tremolo_end = 1
+        self.quarter_step = 2**(1/24)
         self.t_in = 0.05
         self.t_out = 0.05
         
@@ -66,8 +67,8 @@ class SoundGenerator():
         """Retourne la valeur du trémolo en fonction du temps passé sur la même note
         Pas de trémolo sur les tremolo_start premières secondes de la note, après on monte graduellement jusqu'à tremolo_end sec
         avec une interpolation linéare"""
-        #check if frequency is equal to previous note
-        if self.frequency != self.memory_frequency :
+        #check if frequency is less than a quarter step away from previous note 
+        if (self.frequency < self.memory_frequency/self.quarter_step) or (self.frequency > self.memory_frequency*self.quarter_step):
             self.ref_tremolo = time()
             self.memory_frequency = self.frequency
             self.tremolo = 0
