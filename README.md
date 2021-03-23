@@ -1,17 +1,17 @@
 # Theremin project
 This python project uses python and a leap motion to simulate a theremin.
-## First part - tkinterUsage
+# First part - tkinterUsage
 This branch contains the first part of our project, where we worked on two separate applications.
-### Simulating a theremin sound - Leap Motion introduction
+## Simulating a theremin sound - Leap Motion introduction
 The files interface_synthesis.py and theremin_sound.py, writtten in python3, will allow you to simulate a theremin controlled by your computer mouse.
 The files theremin.py (python2) and audio.py (python3) will allow you to connect a python2 script to the leap motion and to connect a python2 script with a python3 script using a socket connection.
 
-## Second part - leapMotionUsage - Interfacing python2, python3 and the leap motion
+# Second part - leapMotionUsage - Interfacing python2, python3 and the leap motion
 This python project uses python and a leap motion to simulate a theremin. 
 As the latest version of the Leap motion API does not support Python, we use an older version.
 This version only work with Python2.
 Thus we use Python2 to interact with the Leap Motion and Python3 for the rest od the code (mainly to use simpleaudio)
-# Files
+## Files
 The project contains the following files :
 ## socketserver.py
 In python2, define a SocketServer class.
